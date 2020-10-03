@@ -7,7 +7,6 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from nanoleafapi import discovery
 from nanoleafapi import Nanoleaf
-from nanoleafapi import RED, ORANGE, YELLOW, GREEN, LIGHT_BLUE, BLUE, PINK, WHITE
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -15,177 +14,154 @@ GUILD = os.getenv('DISCORD_GUILD')
 NANOLEAF_IP_ADDRESS = os.getenv('NANOLEAF_IP_ADDRESS')
 NANOLEAF_AUTH_TOKEN = os.getenv('NANOLEAF_AUTH_TOKEN')
 
-ON = 'on'
-OFF = 'off'
-TOGGLE = 'toggle'
+MALFORMED_MESSAGE_ERROR_MESSAGE = 'Malformed message received. Nothing happened!'
 
-bot = commands.Bot(command_prefix='!')
+nanoleaf = Nanoleaf(NANOLEAF_IP_ADDRESS, NANOLEAF_AUTH_TOKEN)
 
-@bot.command(name='nanoleaf_connect', help='Performs functionality related to connectiono')
-async def nanoleaf_connect(ctx, ip_address):
-    # TODO convert to class to become functional and to allow multiple bot instances
-    nl = Nanoleaf(NANOLEAF_IP_ADDRESS, NANOLEAF_AUTH_TOKEN)
+bot = commands.Bot(command_prefix='!nanoleaf ')
 
+@bot.command(name='debugger', help='Type \"!nanoleaf debugger\" to debug.')
+async def debugger(ctx, arg=None, *args):
+    breakpoint()
+
+
+@bot.command(name='connect', help='Performs functionality related to connection')
+async def connect(ctx, ip_address):
     # TODO everything
+    pass
 
-@bot.command(name='nanoleaf_identify', help='Performs functionality related to identification')
-async def nanoleaf_identify(ctx):
-    # TODO convert to class to become functional and to allow multiple bot instances
-    nl = Nanoleaf(NANOLEAF_IP_ADDRESS, NANOLEAF_AUTH_TOKEN)
 
+@bot.command(name='identify', help='Performs functionality related to identification')
+async def identify(ctx):
     # TODO everything
+    pass
 
-@bot.command(name='nanoleaf_power', help='Performs functionality related to power')
-async def nanoleaf_power(ctx, arg):
-    # TODO convert to class to become functional and to allow multiple bot instances
-    nl = Nanoleaf(NANOLEAF_IP_ADDRESS, NANOLEAF_AUTH_TOKEN)
 
-    if arg == ON:
-        nl.power_on()
-    elif arg == OFF:
-        nl.power_off()
-    elif arg == TOGGLE:
-        nl.toggle_power()
+@bot.command(name='power', help='Performs functionality related to power')
+async def power(ctx, arg):
+    if arg == 'on':
+        nanoleaf.power_on()
+    elif arg == 'off':
+        nanoleaf.power_off()
+    elif arg == 'toggle':
+        nanoleaf.toggle_power()
     else:
-        temp = 'orary'
-        # TODO error handling
+        await ctx.send(MALFORMED_MESSAGE_ERROR_MESSAGE)
 
-    status = f'Nanoleaf is powered on.' if nl.get_power() else f'Nanoleaf is powered off.'
+    status = f'Nanoleaf is powered on.' if nanoleaf.get_power() else f'Nanoleaf is powered off.'
     await ctx.send(status)
 
-@bot.command(name='nanoleaf_color', help='Performs functionality related to color')
-async def nanoleaf_color(ctx, *args):
-    # TODO convert to class to become functional and to allow multiple bot instances
-    nl = Nanoleaf(NANOLEAF_IP_ADDRESS, NANOLEAF_AUTH_TOKEN)
 
+@bot.command(name='color', help='Performs functionality related to color')
+async def color(ctx, *args):
     if len(args) == 1:
-        if args[0] == 'red':
-            nl.set_color(RED)
-        elif args[0] == 'orange':
-            nl.set_color(ORANGE)
-        elif args[0] == 'yellow':
-            nl.set_color(YELLOW)
-        elif args[0] == 'green':
-            nl.set_color(GREEN)
-        elif args[0] == 'light_blue':
-            nl.set_color(LIGHT_BLUE)
-        elif args[0] == 'blue':
-            nl.set_color(BLUE)
-        elif args[0] == 'pink':
-            nl.set_color(PINK)
-        elif args[0] == 'purple':
-            nl.set_color(PURPLE)
-        elif args[0] == 'white':
-            nl.set_color(WHITE)
+        if args[0].isalpha():
+            if args[0] == 'white':
+                color = (255, 255, 255)
+            if args[0] == 'red':
+                color = (255, 0, 0)
+            elif args[0] == 'orange':
+                color = (255, 127, 0)
+            elif args[0] == 'yellow':
+                color = (255, 255, 0)
+            elif args[0] == 'green':
+                color = (0, 255, 0)
+            elif args[0] == 'blue':
+                color = (0, 0, 255)
+            elif args[0] == 'indigo':
+                color = (46, 43, 95)
+            elif args[0] == 'violet':
+                color = (139, 0, 255)
+            else:
+                await ctx.send(MALFORMED_MESSAGE_ERROR_MESSAGE)
+            nanoleaf.set_color(color)
+        elif args[0].isnumeric():
+            color = (int(args[0]), int(args[0]), int(args[0]))
+            nanoleaf.set_color(color)
         else:
-            temp = 'orary'
-            # TODO error handling
+            await ctx.send(MALFORMED_MESSAGE_ERROR_MESSAGE)
+            return
     elif len(args) == 3:
-        try:
-            nl.set_color((int(args[0]), int(args[1]), int(args[2])))
-        except Exception as e:
-            temp = 'orary'
-            # TODO error handling
+        if all([arg.lstrip('-').isnumeric() for arg in args]):
+            color = (int(args[0]), int(args[1]), int(args[2]))
+            nanoleaf.set_color(color)
+        else:
+            await ctx.send(MALFORMED_MESSAGE_ERROR_MESSAGE)
+            return
     else:
-        temp = 'orary'
-        # TODO error handling
+        await ctx.send(MALFORMED_MESSAGE_ERROR_MESSAGE)
+        return
 
-
-    status = f'Nanoleaf color is {args[0]}' if len(args) == 1 else f'Nanoleaf color is ({args[0]}, {args[1]}, {args[2]}).'
+    status = f'Nanoleaf color is {color}.'
     await ctx.send(status)
 
-@bot.command(name='nanoleaf_brightness', help='Performs functionality related to brightness')
-async def nanoleaf_brightness(ctx, arg=None):
-    # TODO convert to class to become functional and to allow multiple bot instances
-    nl = Nanoleaf(NANOLEAF_IP_ADDRESS, NANOLEAF_AUTH_TOKEN)
 
+@bot.command(name='brightness', help='Performs functionality related to brightness')
+async def brightness(ctx, arg=None):
+    if arg:
+        if arg.isnumeric():
+            nanoleaf.set_brightness(int(arg))
+
+    status = f'Nanoleaf brightness is {nanoleaf.get_brightness()}'
+    await ctx.send(status)
+
+
+@bot.command(name='hue', help='Performs functionality related to hue')
+async def hue(ctx, arg=None):
     if arg == None:
-        nl.get_brightness()
+        nanoleaf.get_hue()
     else:
         try:
-            nl.set_brightness(int(arg))
+            nanoleaf.set_hue(int(arg))
         except Exception as e:
             temp = 'orary'
             # TODO error handling
 
-    status = f'Nanoleaf brightness is {nl.get_brightness()}'
+    status = f'Nanoleaf hue is {nanoleaf.get_hue()}.'
     await ctx.send(status)
 
-@bot.command(name='nanoleaf_hue', help='Performs functionality related to hue')
-async def nanoleaf_hue(ctx, arg=None):
-    # TODO convert to class to become functional and to allow multiple bot instances
-    nl = Nanoleaf(NANOLEAF_IP_ADDRESS, NANOLEAF_AUTH_TOKEN)
 
+@bot.command(name='saturation', help='Performs functionality related to saturation')
+async def saturation(ctx, arg=None):
     if arg == None:
-        nl.get_hue()
+        nanoleaf.get_saturation()
     else:
         try:
-            nl.set_hue(int(arg))
+            nanoleaf.set_saturation(int(arg))
         except Exception as e:
             temp = 'orary'
             # TODO error handling
 
-    status = f'Nanoleaf hue is {nl.get_hue()}.'
+    status = f'Nanoleaf saturation is {nanoleaf.get_saturation()}.'
     await ctx.send(status)
 
-@bot.command(name='nanoleaf_saturation', help='Performs functionality related to saturation')
-async def nanoleaf_saturation(ctx, arg=None):
-    # TODO convert to class to become functional and to allow multiple bot instances
-    nl = Nanoleaf(NANOLEAF_IP_ADDRESS, NANOLEAF_AUTH_TOKEN)
 
+@bot.command(name='color_temperature', help='Performs functionality related to color temperature')
+async def color_temperature(ctx, arg=None):
     if arg == None:
-        nl.get_saturation()
+        nanoleaf.get_color_temp()
     else:
         try:
-            nl.set_saturation(int(arg))
+            nanoleaf.set_color_temp(int(arg))
         except Exception as e:
             temp = 'orary'
             # TODO error handling
 
-    status = f'Nanoleaf saturation is {nl.get_saturation()}.'
+    status = f'Nanoleaf color temperature is {nanoleaf.get_color_temp()}.'
     await ctx.send(status)
 
-@bot.command(name='nanoleaf_color_temperature', help='Performs functionality related to color temperature')
-async def nanoleaf_color_temperature(ctx, arg=None):
-    # TODO convert to class to become functional and to allow multiple bot instances
-    nl = Nanoleaf(NANOLEAF_IP_ADDRESS, NANOLEAF_AUTH_TOKEN)
 
-    if arg == None:
-        nl.get_color_temp()
-    else:
-        try:
-            nl.set_color_temp(int(arg))
-        except Exception as e:
-            temp = 'orary'
-            # TODO error handling
-
-    status = f'Nanoleaf color temperature is {nl.get_color_temp()}.'
-    await ctx.send(status)
-
-@bot.command(name='nanoleaf_effects', help='Performs functionality related to effects')
-async def nanoleaf_effects(ctx, arg=None):
-    # TODO convert to class to become functional and to allow multiple bot instances
-    nl = Nanoleaf(NANOLEAF_IP_ADDRESS, NANOLEAF_AUTH_TOKEN)
-
+@bot.command(name='effects', help='Performs functionality related to effects')
+async def effects(ctx, arg=None):
     if arg:
         try:
-            breakpoint()
-            nl.set_effect(arg)
+            nanoleaf.set_effect(arg)
         except Exception as e:
             temp = 'orary'
             # TODO error handling
 
-    status = f'Nanoleaf current effect:\n{nl.get_current_effect()}\n\nNanoleaf available effects:\n' + '\n'.join(effect for effect in nl.list_effects())
+    status = f'Nanoleaf current effect:\n{nanoleaf.get_current_effect()}\n\nNanoleaf available effects:\n' + '\n'.join(effect for effect in nanoleaf.list_effects())
     await ctx.send(status)
 
+
 bot.run(TOKEN)
-
-# TODO genercize similar functions
-# brightness, hue, saturation, and color temperature share the same patterrn
-# conditional statement to function object assignment
-# getter = blah
-# setter = blah
-
-# increment_*(value), get_color_mode(), effect_exists(name), and write_effect(effect_dict) intentionally ommitted
-
-# TODO requirements.txt

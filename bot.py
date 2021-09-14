@@ -1,6 +1,5 @@
 # standard library
 import os
-import random
 
 # third-party
 from discord.ext import commands
@@ -27,13 +26,15 @@ async def debugger(ctx, arg=None, *args):
 
 @bot.command(name='connect', help='Performs functionality related to connection')
 async def connect(ctx, ip_address):
-    # TODO everything
+    # TODO Everything
+    # Non-developers will not be able to connect their Nanoleafs to Discord Bot Siege Thots
     pass
 
 
 @bot.command(name='identify', help='Performs functionality related to identification')
 async def identify(ctx):
-    # TODO everything
+    # TODO Everything
+    # Non-developers will not be able to identify their Nanoleafs to Discord Bot Siege Thots
     pass
 
 
